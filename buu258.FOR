@@ -384,7 +384,7 @@ C
       PARAMETER (AN0=.160)
       PARAMETER (H=.19733)
 C
-      PARAMETER (UIZO=.092)
+      PARAMETER (UIZO=0.097*2) !was 0.092, changed to match mov131 2010-06-02 BWB
       PARAMETER (FIZO=UIZO/AN0)
 C
 C
