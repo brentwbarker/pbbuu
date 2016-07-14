@@ -355,17 +355,17 @@ C
 *      dimension probs(0:ncomx)
 *c  end for Jorg
 C
-      parameter(ntimo=0,ntimo1=ntimo+1)
+*      parameter(ntimo=0,ntimo1=ntimo+1)
 *      parameter(ntimo=13,ntimo1=ntimo+1)
-*      parameter(ntimo=20,ntimo1=ntimo+1)
+      parameter(ntimo=20,ntimo1=ntimo+1)
       dimension timo(0:ntimo)
       dimension ktimo(0:ntimo)
 *      data timo/1E30,0.,1.,2.,3.,4.,5.,6.,7.,8.,9.,10.,11.,12.,13.
 *     d  ,14.,15.,16.,17.,18.,19.,20.,21.,22.,23.,25.,27.,30.,33.,36./
 *      data timo/1E30,0.,2.,4.,6.,8.,10.,12.,14.,16.,18.,20.,22.,25./
-*      data timo/1E30,0.,5.,10.,15.,20.
-*     d  ,25.,30.,35.,40.,45.,50.,60.,70.,80.,100.,120.,140.,170.,200.
-*     a  ,230./
+      data timo/1E30,0.,5.,10.,15.,20.
+     d  ,25.,30.,35.,40.,45.,50.,60.,70.,80.,100.,120.,140.,170.,200.
+     a  ,230./
       data ktimo/ntimo1*1/
 C
 C  DATA FOR INITIALIZATION FOLLOW
