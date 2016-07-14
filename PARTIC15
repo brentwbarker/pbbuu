@@ -1,0 +1,80 @@
+      INCLUDE 'NUCLS'
+      INCLUDE 'NQUA1'
+      INCLUDE 'PARTID'
+      integer ia, nqi, nqex, nq
+      PARAMETER (IA=IA1+IA2)
+      PARAMETER (NQI=NQU*IA)
+      PARAMETER (NQEX=NQI/2*(1.+.20*tlab))  !.32*TLAB))  !
+      PARAMETER (NQ=NQI+NQEX)
+      COMMON/PARTI/ID,IVAL,IPO,IEM,NEM,MDE,mdep
+      integer iem, ipo,nem
+      COMMON/PARTJ/NCS,IPTI
+      COMMON/PARTR/PX,PY,PZ,EE,AMV,epsh
+      COMMON/PARTX/XX,YY,ZZ
+      integer ival
+      DIMENSION ID(NQ),IVAL(NQ)
+      INTEGER*2 ID
+!  THESE ARE PTCLE ID'S: 0 - EMPTY, 1 - PROTON, 2 - NEUTRON
+!  3 - DEUTERON, NEGATIVE - WENT OUT OF THE COMPUTATIONAL AREA
+!  4 - HELIUM 3, 5 - TRITON, 6 - HELIUM 4
+!  7 - DELTA ++, 8 - DELTA +, 9 - DELTA 0, 10 - DELTA -
+!  11 - N* +, 12 - N* 0
+!  13 - PI +, 14 - PI 0, 15 - PI -, 16 - GAMMA
+!
+      DIMENSION IEM(NQ)
+!  IEM KEEP TRACK OF EMPTY QUASIPARTICLES, FOR FILL UP WHEN
+!  A DEUTERON OR A DELTA/* BREAKS UP
+!
+      DIMENSION IPO(NQ)
+!  IPO ARE POINTERS TO QUASIPARTICLES, THEY WILL BE SORTED
+!
+      real amv, ee, epsh,px,py,pz
+      DIMENSION PX(NQ),PY(NQ),PZ(NQ),EE(NQ),AMV(NQ),epsh(nq)
+      integer ncs, ipti
+      DIMENSION NCS(NQ),IPTI(NQ)
+!  NCS - NUMBER OF COLLISIONS
+!  NCS NEGATIVE: PARTICLE FORMED A MOMENT AGO
+!    THIS WORKS FOR COMPOSIES, RESONANCES, AND PIONS
+!  IPTI = 1 - PROJECTILE NUCLEONS
+!         2 - TARGET NUCLEONS
+!  IPTI NEGATIVE: PARTICLE CLASSIFIED AS FREE XOR HAS INTERACTED A MOMENT AGO
+!  AMV - VACUUM MASS OF A PARTICLE - INTRODUCED BECAUSE OF THE DELTA'S
+      DIMENSION MDE(NQ)
+      INTEGER*2 MDE
+!  MDE - COULOMB + ISOSPIN SHIFT UP TO THE FACTOR BELOW
+      real etom, petom
+      PARAMETER (ETOM=1E5,PETOM=1./ETOM)
+      DIMENSION MDEp(NQ)
+      INTEGER*2 MDEp
+!  mdep - Coulomb pot energy/charge + isospin pot energy/baryon No up to factor
+      real xx,yy,zz
+      DIMENSION XX(NQ),YY(NQ),ZZ(NQ)
+!
+      integer ncrq
+      PARAMETER (NCRQ=1+NCOR*(NQ-1))
+      INTEGER*2 IRCR,ITCR,IPCR,IECR
+      integer*2, dimension(ncrq) :: IRHCR
+      COMMON/CCOR/IRCR(3,NCRQ),ITCR(NCRQ),IPCR(3,NCRQ),IECR(NCRQ),IRHCR
+      LOGICAL LCOR
+      PARAMETER (LCOR=NCOR.EQ.1)
+      integer ntrq
+      parameter (ntrq=1+ntro*(nq-1))
+      integer*2 isr,isrx
+      common/ctro/isr(ntrq),isrx(ntrq)
+!      common/ctro/isr(ntrq),isrb(ntrq)
+      logical pent
+      parameter (pent=ntro.eq.1)       !entropy calculated
+!      COMMON/FLO/IBX(NQ),IBY(NQ),IBZ(NQ)
+!      INTEGER*2 IBX,IBY,IBZ
+      COMMON/FLO/IBT,IBZ,ICT,ICZ,IFT,IFZ,IFSH,igx,igy,igz
+      dimension ibt(nq),ibz(nq),ict(nq),icz(nq),ift(nq),ifz(nq),ifsh(nq)
+      dimension igx(nq),igy(nq),igz(nq)
+      integer*2 igx,igy,igz
+      INTEGER*2 IBT,IBZ
+      INTEGER*2 ICT,ICZ
+      INTEGER*2 IFT,IFZ
+      INTEGER*2 IFSH
+      COMMON/CLUS/ITFO(NQ),IRFO(NQ)
+      INTEGER*2 ITFO,IRFO
+!      COMMON/PTJORG/NAJO(NQ),NASU(NQ)
+!      INTEGER*2 NAJO,NASU

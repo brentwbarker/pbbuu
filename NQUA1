@@ -1,0 +1,3 @@
+      integer nqu !< number of test particles
+      PARAMETER (NQU=30)
+!      PARAMETER (NQU=300)

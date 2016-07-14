@@ -1,0 +1,2 @@
+      COMMON/CSURC/RHOS
+      DIMENSION RHOS(-NT:NT,-NT:NT,-NL:NL)    !approx. to laplacian rho

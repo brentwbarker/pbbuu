@@ -1,0 +1,417 @@
+      PARAMETER(TLAB=.16)
+C
+      PARAMETER(BMAX=2.351,NBI=16)
+      PARAMETER(BMAXK=BMAX*BMAX,DBK=BMAXK/NBI)
+C
+      PARAMETER(NFI=1)
+      CHARACTER*7 FNAME(NFI)
+      DIMENSION NQU(NFI)
+      DATA NQU/NFI*1000/
+      data fname/'asb1wgp'/
+C
+      INCLUDE 'PAR.INC'
+C
+      INCLUDE 'MOS.INC'
+C
+      PARAMETER(NSR=200)
+      PARAMETER(DSR=100./NSR)
+      DIMENSION S(NSR,3),SS(NSR,3),NEN(3)
+      DIMENSION TIM(NSR,3),TIMS(NSR,3),td(nsr,3),zem(nsr,3),rem(nsr,3)
+      dimension rhxij(nsr,3)
+      DIMENSION BR(0:NSR)
+C
+      DIMENSION PTOM(3),PTOMX(3)
+      DATA PTOM/.2,.4,.8/PTOMX/.4,.8,1.2/
+      PARAMETER(ANG=37.5,DANG=7.5)
+C
+      DIMENSION RHOX(3),ANOX(3),ANIB(3)
+C
+      PARAMETER(AMP=.9383,AMN=.9396,AM0=.5*(AMP+AMN))
+      PARAMETER(B=.008)
+      PARAMETER(AMB=AM0-B)
+      PARAMETER(EBEAM=TLAB+AMB)
+C
+      PARAMETER(AM0K=AM0*AM0)
+C
+      INTEGER*2 IDIC
+      INTEGER*2 IRX(NSIZ),IRY(NSIZ),IRZ(NSIZ),ITC(NSIZ),IRHR(NSIZ)
+C
+      CHARACTER FILNAM*11
+C
+      PI=4.*ATAN(1.)
+C
+      ANGR=ANG*PI/180.
+      DANGR=DANG*PI/180.
+C
+      PBEAM=SQRT((EBEAM-AMB)*(EBEAM+AMB))
+      PTO=IA1*PBEAM
+      ETO=IA1*EBEAM+IA2*AMB
+      YCM=.5*ALOG((ETO+PTO)/(ETO-PTO))
+      BCM=PTO/ETO
+      GCM=1./SQRT(1.-BCM*BCM)
+      BGCM=GCM*BCM
+C
+      BBM=PBEAM/EBEAM
+      GBM=1./SQRT(1.-BBM*BBM)
+      BGBM=GBM*BBM
+C
+      BR(0)=0.
+      IF(DSR.LE.0.)THEN
+        OPEN(15,FILE='INTS.',STATUS='UNKNOWN')
+        DO IR=1,NSR
+          READ(15,*)A
+          BR(IR)=BR(IR-1)+A
+        ENDDO
+        CLOSE(15)
+      ELSE
+        DO IR=1,NSR
+          BR(IR)=IR*DSR
+        ENDDO
+      ENDIF
+      RSMX=BR(NSR)
+C
+      DO IS=1,3
+        NEN(IS)=0
+        ANOX(IS)=0.
+        ANIB(IS)=0.
+        DO IR=1,NSR
+          S(IR,IS)=0.
+          tim(ir,is)=0.
+          tims(ir,is)=0.
+          td(ir,is)=0.
+          zem(ir,is)=0.
+          rem(ir,is)=0.
+          rhxij(ir,is)=0.
+        ENDDO
+      ENDDO
+C
+      KF=1
+      NTO=0
+ 40   CONTINUE
+      FILNAM=FNAME(KF)//'.COR'
+      OPEN(11,FILE=FILNAM,FORM='UNFORMATTED',STATUS='OLD')
+C
+      KB=1
+ 45   CONTINUE
+C
+      NTO=NTO+NQU(KF)
+C
+      BIMK=DBK*(KB-.5)
+      BIM=SQRT(BIMK)
+C
+      IEN=1
+ 50   CONTINUE
+      READ(11,END=250)IDIC,IXXI(IEN),IYYI(IEN),IZZI(IEN)
+     R  ,ITC(IEN),IRX(IEN),IRY(IEN),IRZ(IEN),IRHR(IEN)
+      IF(IDIC.EQ.-100)THEN
+        IF((KB/2)*2.NE.KB)THEN
+          KB=KB+1
+          GOTO 50
+        ELSE
+          GOTO 250
+        ENDIF
+      ENDIF
+      IF(IDIC.NE.1)GOTO 50
+      IPO(IEN)=IEN
+      IEN=IEN+1
+      GOTO 50
+C
+ 250  CONTINUE
+      IEN=IEN-1
+      WRITE(*,*)IEN
+      IF(IEN.NE.0)THEN
+        CALL GIVAL
+        CALL SORTI(IPO,IVAL,IEN)
+        CALL FINDI(IPO,IVAL,IEN)
+        DO IIZ=-NLM,NLX   !!changed from 1,NLX on Jul 24, 2009
+          DO IIY=-NT,NT
+            DO IIX=-NT,NT
+              IIMX=IMX(IIX,IIY,IIZ)
+              IF(IIMX.GT.0)THEN
+                IIMN=IMN(IIX,IIY,IIZ)
+                DO 270 II=IIMN,IIMX
+                  IIP=IPO(II)
+                  PXI=IXXI(IIP)*1E-3
+                  PYI=IYYI(IIP)*1E-3
+                  PZI=IZZI(IIP)*1E-3
+                  PITK=PXI*PXI+PYI*PYI
+                  PIT=SQRT(PITK)
+                  ANGT=ATAN2(PIT,PZI)
+                  IF(ABS(ANGR-ANGT).GT.DANGR)GOTO 270
+                  PITOK=PITK+PZI*PZI
+                  EI=SQRT(AM0K+PITOK)
+                  CALL LOREN(0.,0.,-BGCM,GCM,PXI,PYI,PZI,EI
+     L              ,PXCI,PYCI,PZCI,ECI)
+                  PCI2=2.*SQRT(PITK+PZCI*PZCI)
+                  ISB=0
+                  DO IS=1,3
+                    IF(PCI2.GE.PTOM(IS).AND.
+     I                PCI2.LE.PTOMX(IS))ISB=IS
+                  ENDDO
+                  IF(ISB.NE.0)THEN
+                    ANOX(ISB)=ANOX(ISB)+1.
+                    RHOX(ISB)=RHOX(ISB)+IRHR(IIP)
+                  ENDIF
+                  TI=ITC(IIP)/20.
+                  XI=IRX(IIP)*1E-2
+                  YI=IRY(IIP)*1E-2
+                  ZI=IRZ(IIP)*1E-2
+                  rhxi=irhr(iip)*1e-3
+                  DO 260 JJ=II+1,IIMX
+                    JJP=IPO(JJ)
+                    PXJ=IXXI(JJP)*1E-3
+                    PYJ=IYYI(JJP)*1E-3
+                    PZJ=IZZI(JJP)*1E-3
+                    PJTK=PXJ*PXJ+PYJ*PYJ
+                    PJT=SQRT(PJTK)
+                    ANGT=ATAN2(PJT,PZJ)
+                    IF(ABS(ANGR-ANGT).GT.DANGR)GOTO 260
+                    PJTOK=PJTK+PZJ*PZJ
+                    EJ=SQRT(AM0K+PJTOK)
+                    CALL LOREN(0.,0.,-BGCM,GCM,PXJ,PYJ,PZJ,EJ
+     L                ,PXCJ,PYCJ,PZCJ,ECJ)
+                    PXIJ=PXJ+PXI
+                    PYIJ=PYJ+PYI
+                    PZCIJ=PZCJ+PZCI
+                    PIJTK=PXIJ*PXIJ+PYIJ*PYIJ
+                    PCIJK=PIJTK+PZCIJ*PZCIJ
+                    PCIJ=SQRT(PCIJK)
+                    ISB=0
+                    DO IS=1,3
+                      IF(PCIJ.GE.PTOM(IS).AND.PCIJ.LE.PTOMX(IS))ISB=IS
+                    ENDDO
+                    IF(ISB.NE.0)THEN
+                      ECIJ=ECI+ECJ
+                      AMIJ=SQRT(ECIJ*ECIJ-PCIJK)
+                      TJ=ITC(JJP)/20.
+                      TIJ=TJ-TI
+                      xj=irx(jjp)*1e-2
+                      yj=iry(jjp)*1e-2
+                      zj=irz(jjp)*1e-2
+                      rhxj=irhr(jjp)*1e-3
+                      XIJ=IRX(JJP)*1E-2-XI
+                      YIJ=IRY(JJP)*1E-2-YI
+                      ZIJ=IRZ(JJP)*1E-2-ZI
+                      CALL LOREN(-PXIJ/AMIJ,-PYIJ/AMIJ
+     C                  ,-PZCIJ/AMIJ,ECIJ/AMIJ,XIJ,YIJ
+     L                  ,ZIJ,TIJ,XCIJ,YCIJ,ZCIJ,TCIJ)
+                      RCIJ=SQRT(XCIJ*XCIJ+YCIJ*YCIJ+ZCIJ*ZCIJ)
+                      IF(RCIJ.LT.RSMX)THEN
+                        DO ISR=1,NSR
+                          IF(BR(ISR).GT.RCIJ)THEN
+                            S(ISR,ISB)=S(ISR,ISB)+1.
+                            TIM(ISR,ISB)=TIM(ISR,ISB)+TI+TJ
+                            TIMS(ISR,ISB)=TIMS(ISR,ISB)+TI*TI+TJ*TJ
+                            td(isr,isb)=td(isr,isb)+abs(ti-tj)
+                            zem(isr,isb)=zem(isr,isb)+zi+zj
+                            rem(isr,isb)=rem(isr,isb)
+     r                        +sqrt((xi+xj)**2+(yi+yj)**2)
+                            rhxij(isr,isb)=rhxij(isr,isb)+rhxi+rhxj
+                            GOTO 320
+                          ENDIF
+                        ENDDO
+ 320                    CONTINUE
+                      ENDIF
+                      NEN(ISB)=NEN(ISB)+1
+                      ANIB(ISB)=ANIB(ISB)+BIM
+                    ENDIF
+ 260              CONTINUE
+ 270            CONTINUE
+              ENDIF
+            ENDDO
+          ENDDO
+        ENDDO
+      ENDIF
+C
+      KB=KB+1
+      IF(KB.LE.NBI)GOTO 45
+C
+      KF=KF+1
+      IF(KF.LE.NFI)GOTO 40
+      CLOSE(11)
+C
+      DO ISB=1,3
+        RHOX(ISB)=RHOX(ISB)*1E-4/MAX(ANOX(ISB),1.)/.160
+        NE=MAX(NEN(ISB),1)
+        ANIB(ISB)=ANIB(ISB)/NE
+        DO ISR=1,NSR
+          SI=S(ISR,ISB)
+          SIM=MAX(1.,SI+SI)
+          TIM(ISR,ISB)=TIM(ISR,ISB)/SIM
+          TIMS(ISR,ISB)=TIMS(ISR,ISB)/SIM
+          TIMS(ISR,ISB)=SQRT(MAX(0.,TIMS(ISR,ISB)-TIM(ISR,ISB)**2)
+     T      /SIM)
+          td(isr,isb)=td(isr,isb)/max(1.,si)
+          zem(isr,isb)=zem(isr,isb)/sim
+          rem(isr,isb)=rem(isr,isb)/sim
+          rhxij(isr,isb)=rhxij(isr,isb)/sim
+          SS(ISR,ISB)=SQRT(S(ISR,ISB))
+          FACC=4./3.*PI*(BR(ISR)**3-BR(ISR-1)**3)*NE
+          SS(ISR,ISB)=SS(ISR,ISB)/FACC
+          S(ISR,ISB)=S(ISR,ISB)/FACC
+        ENDDO
+      ENDDO
+C
+      open(30,file='test1.cor',status='unknown')
+      DO ISR=1,nsr
+        WRITE(*,'(1X,F5.2,3(2X,E10.5,1X,''('',E10.5,'')''))')
+     W    .5*(BR(ISR)+BR(ISR-1)),(S(ISR,ISB),SS(ISR,ISB),ISB=1,3)
+        WRITE(30,'(1X,F5.2,3(2X,E10.5,1X,''('',E10.5,'')''))')
+     W    .5*(BR(ISR)+BR(ISR-1)),(S(ISR,ISB),SS(ISR,ISB),ISB=1,3)
+      ENDDO
+      WRITE(*,*)RHOX
+      WRITE(30,*)RHOX
+      WRITE(*,*)ANIB
+      WRITE(30,*)ANIB
+      open(31,file='ver.cor',status='unknown')
+      do isb=1,3
+        do isr=1,nsr
+          write(31,*)dble(br(isr)),dble(s(isr,isb)),dble(ss(isr,isb))
+        enddo
+        write(31,*)' '
+      enddo
+C
+      DO ISB=1,3
+        AA=0.
+        BB=0.
+        DO ISR=1,NSR
+          FACC=BR(ISR)**3-BR(ISR-1)**3
+          AA=AA+FACC*S(ISR,ISB)
+          BB=BB+(FACC*SS(ISR,ISB))**2
+        ENDDO
+        AA=AA*4.*PI/3.
+        BB=SQRT(BB)*4.*PI/3.
+        WRITE(*,*)AA,BB
+        WRITE(30,*)AA,BB
+      ENDDO
+c
+      DO ISR=1,nsr
+        WRITE(*,'(1X,F5.2,3(2X,F5.1,1X,''('',F4.1,'')'',1x,f4.0
+     r    ,1x,f5.0))')
+     W    .5*(BR(ISR)+BR(ISR-1)),(TIM(ISR,ISB),TIMS(ISR,ISB)
+     r    ,td(isr,isb),rem(isr,isb),ISB=1,3)
+        WRITE(30,'(1X,F5.2,3(2X,F5.1,1X,''('',F4.1,'')'',1x,f4.0
+     r    ,1x,f5.0))')
+     W    .5*(BR(ISR)+BR(ISR-1)),(TIM(ISR,ISB),TIMS(ISR,ISB)
+     r    ,td(isr,isb),rhxij(isr,isb)*100.,isb=1,3)  !rem(isr,isb),ISB=1,3)
+      ENDDO
+c
+C
+      END
+
+
+      SUBROUTINE LOREN(BGX,BGY,BGZ,G,PCX,PCY,PCZ,EC,PX,PY,PZ,E)
+C  LORENTZ TRANSF.  (PC,EC) BOOSTED WITH (BG,G) TO (P,E)
+C  NOTE: BG IS GAMMA*BETA
+C
+      BGPC=BGX*PCX+BGY*PCY+BGZ*PCZ
+      EG=EC+BGPC/(G+1.)
+      PX=PCX+EG*BGX
+      PY=PCY+EG*BGY
+      PZ=PCZ+EG*BGZ
+C
+      E=G*EC+BGPC
+C
+      END
+
+
+      SUBROUTINE GIVAL
+C
+      INCLUDE 'MOS.INC'
+C
+      INCLUDE 'PAR.INC'
+C
+      DO I=1,IEN
+        IX=NINT(IXXI(I)*1E-3/DPTL)
+        IY=NINT(IYYI(I)*1E-3/DPTL)
+        IZ=NINT(IZZI(I)*1E-3/DPTL)
+        IF(ABS(IX).LE.NT.AND.ABS(IY).LE.NT.AND.
+     I    IZ.GE.-NLM.AND.IZ.LE.NLX)THEN
+          IVAL(I)=IY*NTL1+IX*NLL1+IZ
+        ELSE
+          IVAL(I)=MAXIPO
+        ENDIF
+      ENDDO
+C
+      END
+
+
+      SUBROUTINE SORTI(IPO,IVAL,NQ)
+      DIMENSION IPO(*),IVAL(*)
+C  IPO -  POINTERS, IVAL - VALUES
+C  HEAPSORT ALGORITHM FROM NUMERICAL RECIPES
+C  POINTERS ARE ARRANGED IN THE ASCENDING OREDER OF IVAL'S
+C  IVAL'S ARE NOT MOVED
+C
+      L=NQ/2+1
+      IR=NQ
+ 10   CONTINUE
+      IF(L.GT.1)THEN
+        L=L-1
+        IPT=IPO(L)
+        IVA=IVAL(IPT)
+      ELSE
+        IPT=IPO(IR)
+        IVA=IVAL(IPT)
+        IPO(IR)=IPO(1)
+        IR=IR-1
+        IF(IR.EQ.1)THEN
+          IPO(1)=IPT
+          RETURN
+        ENDIF
+      ENDIF
+      I=L
+      J=L+L
+ 20   IF(J.LE.IR)THEN
+        IF(J.LT.IR)THEN
+          IF(IVAL(IPO(J)).LT.IVAL(IPO(J+1)))J=J+1
+        ENDIF
+        IF(IVA.LT.IVAL(IPO(J)))THEN
+          IPO(I)=IPO(J)
+          I=J
+          J=J+J
+        ELSE
+          J=IR+1
+        ENDIF
+        GOTO 20
+      ENDIF
+      IPO(I)=IPT
+      GOTO 10
+C
+      END
+
+
+      SUBROUTINE FINDI(IPO,IVAL,NQ)
+C  PUTS VALUES INTO IMN AND IMX
+      DIMENSION IPO(*),IVAL(*)
+      INCLUDE 'MOS.INC'
+C
+      IQC=1
+      DO 60 IY=-NT,NT
+      IYN=IY*NTL1
+      DO 60 IX=-NT,NT
+      IYXN=IYN+IX*NLL1
+      DO 60 IZ=-NLM,NLX
+      IMN(IX,IY,IZ)=IQC
+      IVXYZ=IYXN+IZ
+ 20   CONTINUE
+      IF(IQC.GT.NQ)THEN
+        IF(IMN(IX,IY,IZ).LE.NQ)THEN
+          IMX(IX,IY,IZ)=NQ
+        ELSE
+          IMX(IX,IY,IZ)=-1
+        ENDIF
+      ELSEIF(IVAL(IPO(IQC)).GT.IVXYZ)THEN
+*** EXTRA***
+        IF(IQC.GT.IMN(IX,IY,IZ))THEN
+          IMX(IX,IY,IZ)=IQC-1
+        ELSE
+          IMX(IX,IY,IZ)=-1
+        ENDIF
+      ELSE
+        IQC=IQC+1
+        GOTO 20
+      ENDIF
+ 60   CONTINUE
+C
+      END

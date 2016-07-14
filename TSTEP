@@ -1,0 +1,6 @@
+      PARAMETER(DT=.5)
+      PARAMETER(NSTEP=300,NPIC=125000,NPRI=1)
+      LOGICAL LPRO
+      PARAMETER(LPRO=.TRUE.)   !profile printout
+      LOGICAL LFORM
+      PARAMETER(LFORM=.FALSE.)  !fragment formation times

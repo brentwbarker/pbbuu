@@ -1,0 +1,9 @@
+!     commenting the following for now, since UNDFL is a Lahey compiler intrinsic. It seeks to mask and report underflow. If this happens in real life, I intend to include an IEEE EXCEPTION handling from f2003 or f2008. --me@brentwbarker.net, 2015-11-15
+!      LOGICAL IFLAGU
+!      DATA IFLAGU/.TRUE./
+!
+!      CALL UNDFL(IFLAGU)
+
+C
+*      ANX=3.+1.88 !+3.09*2
+      ANX=4.5     !   14.

@@ -1,0 +1,5 @@
+      integer nidp
+      PARAMETER (NIDP=16)
+      COMMON/ZZC/ZPA,TIZO,BAR,AMS
+      real, dimension(nidp) :: ams, tizo, zpa
+      real, dimension(nidp) :: bar

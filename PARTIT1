@@ -1,0 +1,37 @@
+c23456789012345678901234567890123456789012345678901234567890123456789012
+      integer nidpt
+      parameter (nidpt=18)
+c  this is the number of particles types incorporated into the calculation.
+c  ptcle id's are:
+c  0 - empty
+c  Baryons:
+c     1-proton, 2-neutron, 3-delta++, 4-delta+, 5-delta0, 6-delta-
+c  Anti Baryons
+c     7-N*+     , 8-N*0    , 9-Adelta-, 10-Adelta0, 11-Adelta+, 12-Adelta++
+c  mesons:
+c     13-pi+, 14-pi0, 15-pi-, 16-rho+, 17-rho0, 18-rho-
+      character*20 panam(nidpt)
+      real zpa(nidpt),tizo(nidpt),tiza(nidpt),bar(nidpt)
+     r  ,ams(nidpt),thr(nidpt),gpa(nidpt)
+c zpa is the charge associated to the particle of type id
+c tizo is the isospin number, bar is the baryonic number and
+c ams is the rest mean mass
+c thr is the threshold energy to populate the resonance
+c gam are the full width of the resonances around the mean mass
+c cf the block data zee for values
+      logical ldec(nidpt)
+      common/zzct/zpa,tizo,tiza,
+     &  bar,ams,thr,gpa,ldec,panam
+c now, the basic parameters
+      real amp,amn,am0,amv0,AMX,amec,amen,ame,amrh
+      PARAMETER(AMP=.9383,AMN=.9396,AM0=.5*(AMP+AMN))
+      PARAMETER(AMV0=1.232)
+      PARAMETER(AMX=1.440)
+      PARAMETER(AMEC=.13957,AMEN=.13496,AME=(AMEC+AMEC+AMEN)/3.)
+      PARAMETER(AMRH=.770)
+      real thrdelt,thrrho
+      parameter(thrdelt=am0+ame,thrrho=2*ame)
+      real gmv,gmr,gmx
+      PARAMETER(GMV=.120,GMR=.151,gmx=.200)
+      common/realma/amstr,thrtr
+      real amstr(nidpt),thrtr(nidpt)

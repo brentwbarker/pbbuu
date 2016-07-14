@@ -1,0 +1,88 @@
+      CHARACTER*(*) FNAME
+      PARAMETER (FNAME='bwb')
+!  CHARACTERS THAT START OUTPUT FILE NAMES
+      integer ia1, ia2, iz1, iz2
+      PARAMETER (IA1=20,IA2=20)
+      PARAMETER (IZ1=10,IZ2=10)
+!  1 - PROJECTILE, 2 - TARGET
+!
+      real tlab
+      PARAMETER (TLAB=.100)
+!  IN GEV/A,  CALCULATION IN THE FRAME (NOTE: 1&2 LESS TESTED THAN 0)
+      integer iframe
+      PARAMETER (IFRAME=0)  !0 in the system cm, 1 antilab/proj, 2 lab/tgt
+!---------------------------------------------------------
+      integer nbi
+      PARAMETER (NBI=1)
+!  NO. OF IMPACT PARAMETERS
+!
+!----------------------------------------------------------
+      integer ni,no
+      PARAMETER (NI=0)         !set to 0 for soft eos, to 1 for stiff eos
+      PARAMETER (NO=1-NI)
+!----------------------------------------------------------
+      integer mo
+      PARAMETER (MO=1)         !set to 0 for mo-indep, to 1 for mo-dep
+      integer mi
+      PARAMETER (MI=1-MO)
+!
+!----------------------------------------------------------
+      LOGICAL ASYI
+      PARAMETER (ASYI=.truE.)      !isospin asymmetry in Pauli blocking
+      LOGICAL ASYII
+      PARAMETER (ASYII=ASYI)
+!      PARAMETER (ASYII=ASYI.AND.
+!     P  (IA1.NE.(IZ1+IZ1).OR.IA2.NE.(IZ2+IZ2)))
+!------------------------------------------------------------
+!
+      integer, parameter :: NTRO=0       !set to 1 or 0 to get or not the entropy
+!
+      LOGICAL NODEP,DEPRO
+      PARAMETER (NODEP=.truE.)       !no composite production
+      PARAMETER (DEPRO=.NOT.NODEP)
+      integer ncor
+      PARAMETER (NCOR=0)      !set to 1 or 0 to get or not data for corrlts
+!--------------------------------------------------------------
+      real photr
+      PARAMETER (PHOTR=0.)  !photon nrm. factor (0-20); use 0 for no photons
+!--------------------photons-under-construction----------------
+!
+      LOGICAL SYMMY
+      PARAMETER (SYMMY=.FALSE.)           !exploit y to -y symmetry
+      LOGICAL SYMA
+      PARAMETER (SYMA=SYMMY.OR.ASYII)     !... y sym. forced for Pauli when p/n
+!---------------------------------------------------------------
+!
+!  FOR TESTING BELOW
+      LOGICAL FRCAS
+      PARAMETER (FRCAS=.FALSE.)     !frozen cascade
+      LOGICAL BOX
+      PARAMETER (BOX=.FALSE.)      !system enclosed in a box
+      LOGICAL NOPAU
+      PARAMETER (NOPAU=.FALSE..OR.FRCAS)   !no Pauli principle
+      LOGICAL PION,NPION,NOPION
+      PARAMETER (NOPION=.FALSE.)       !no free pion production
+      LOGICAL WRPION,NRPION
+      PARAMETER (WRPION=.FALSE.)        !pions from wrong detailed balance...
+      PARAMETER (NRPION=.NOT.WRPION)   !like in literature
+      LOGICAL OLAST
+      PARAMETER (OLAST=.FALSE.)        !only elastic processes
+      PARAMETER (NPION=NOPION.OR.OLAST)
+      PARAMETER (PION=.NOT.NPION)
+      LOGICAL NOPOT,POT
+      PARAMETER (NOPOT=.FALSE..OR.FRCAS)        !no nuclear potential
+      PARAMETER (POT=.NOT.NOPOT)
+      LOGICAL LMO,LMI
+      PARAMETER (LMI=MI.EQ.1.OR.NOPOT,LMO=.NOT.LMI)
+      LOGICAL NOCOU,COU
+      PARAMETER (NOCOU=.FALSE..OR.NOPOT)  !neither Coulomb pot nor sym energy
+      PARAMETER (COU=.NOT.NOCOU)
+      real fcou
+      PARAMETER (FCOU=1.) !scaling factor f/Coulomb only, 1 normally, 0 no Coulomb
+      LOGICAL LMIX
+      PARAMETER (LMIX=.FALSE.)            !interchange ptcle positions
+      real frat
+      PARAMETER (FRAT=1.)                 !rate renormalization; normally 1
+!---------------------------------------------------------------
+      LOGICAL LCSM
+      PARAMETER(LCSM=.truE.)  !prescribed elastic in-medium cs used
