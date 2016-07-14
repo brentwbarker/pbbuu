@@ -38,10 +38,10 @@
       integer, parameter :: NTRO=0       !set to 1 or 0 to get or not the entropy
 !
       LOGICAL NODEP,DEPRO
-      PARAMETER (NODEP=.truE.)       !no composite production
+      PARAMETER (NODEP=.false.)       !no composite production
       PARAMETER (DEPRO=.NOT.NODEP)
       integer ncor
-      PARAMETER (NCOR=0)      !set to 1 or 0 to get or not data for corrlts
+      PARAMETER (NCOR=1)      !set to 1 or 0 to get or not data for corrlts
 !--------------------------------------------------------------
       real photr
       PARAMETER (PHOTR=0.)  !photon nrm. factor (0-20); use 0 for no photons
