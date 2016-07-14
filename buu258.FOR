@@ -434,6 +434,8 @@ c
 *     common/ctemp/temp
       COMMON/CSEED/ISEED
 C
+      logical isFcha4Set
+      isFcha4Set=.false.
 C
       INCLUDE 'SPEC1'
 C  IMPACT PARAMETER
@@ -1370,7 +1372,11 @@ c
       write(fbinam,'(i2.2)')nint(bim)
       kb=1
       if(fbinam(1:1).eq.'0')kb=2
-      fillam=fname//fbinam(kb:2)//fiinam(k:5)//'.spa'
+      if(.not.isFcha4Set) then
+       FCHA4=FCHA()//FCHA()//FCHA()//FCHA()
+       isFcha4Set=.true.
+      endif
+      fillam=fname//fcha4//fbinam(1:2)//fiinam(1:5)//'.spa'
       open(37,file=fillam,status='unknown')
 c      write(37,*)'grid of ',nl+nl+1,' z values starting with ',
 c     w  -nl*dll,' and separated by ',dll,','
@@ -1413,25 +1419,29 @@ c      enddo
 *         endif
 *       enddo
 *     enddo
-      write(37,'(10(f6.2,1x))')(ix*dwl,ix=-nt,nt)
+c      write(37,'(10(f6.2,1x))')(ix*dwl,ix=-nt,nt) ! commented for gnuplot output BWB 2012-09-15
+      write(37,*)'# gnuplot-formatted output'
+      write(37,*)'# density for y=0'
+      write(37,*)'# x (fm)   z (fm)   rho/rho_0'
       do iz=-nl,nl
         z=iz*dll
-        write(37,*)'X ',z,' Z'
+c        write(37,*)'X ',z,' Z'
         do ix=-nt,nt
           if(ia1.eq.ia2)then
-            write(37,*).5*(rhob(ix,iz)+rhob(-ix,-iz))/an0
+            write(37,*)ix*dwl,z,.5*(rhob(ix,iz)+rhob(-ix,-iz))/an0
 Cc pressure
 C            write(37,*).5*(ptxz(ix,iz)+ptxz(-ix,-iz))*1e3
           else
-            write(37,*)rhob(ix,iz)/an0
+            write(37,*)ix*dwl,z,rhob(ix,iz)/an0
           endif
         enddo
+       write(37,*)
       enddo
       close(37)
       amo=.5*(ia1+ia2)/(4./3.*pi*pf*pf*pf)
-      fillam=fname//fbinam(kb:2)//fiinam(k:5)//'.mom'
-      open(37,file=fillam,status='unknown')
-      write(37,*)'read mesh Y'
+      FILLAM=fname//fcha4//FBINAM(1:2)//FIINAM(1:5)//'.mom' !changed to include full filename BWB 2008-06-24
+      OPEN(37,FILE=FILLAM,STATUS='UNKNOWN')
+c      write(37,*)'read mesh Y' ! commented for gnuplot output BWB 2012-09-15
 *     write(37,'(10(i5,1x))')(nint(iz*dmo*1e3),iz=-nl,nl)
 *     do ix=-nt,nt
 *       x=ix*dmo
@@ -1444,13 +1454,16 @@ C            write(37,*).5*(ptxz(ix,iz)+ptxz(-ix,-iz))*1e3
 *         endif
 *       enddo
 *     enddo
-      write(37,'(10(f6.2,1x))')(ix*dwl,ix=-nt,nt)
+c      write(37,'(10(f6.2,1x))')(ix*dwl,ix=-nt,nt) ! commented for gnuplot output BWB 2012-09-15
+      write(37,*)'# gnuplot-formatted output'
+      write(37,*)'# momentum density for z=0'
+      write(37,*)'# x (fm)   y (fm)   rho_k/rho_0'
       do iy=-nt,nt
         y=iy*dwl
-        write(37,*)'X ',y,' Z'
+c        write(37,*)'X ',y,' Z'
         do ix=-nt,nt
           if(ia1.eq.ia2)then
-            write(37,*).25*(rho(ix,iy,0)+rho(ix,-iy,0)
+            write(37,*)ix*dwl,y,.25*(rho(ix,iy,0)+rho(ix,-iy,0)
      w        +rho(-ix,iy,0)+rho(-ix,-iy,0))/an0
 Cc pressure
 C            write(37,*).25*(ptxy(ix,iy)+ptxy(ix,-iy)
@@ -1458,9 +1471,10 @@ C     w        +ptxy(-ix,iy)+ptxy(-ix,-iy))*1e3
 CC     w        ,.25*(ptpxy(ix,iy)+ptpxy(ix,-iy)
 CC     w        +ptpxy(-ix,iy)+ptpxy(-ix,-iy))*1e3,prsp0*1e3
           else
-            write(37,*).5*(rho(ix,iy,0)+rho(ix,-iy,0))/an0
+            write(37,*)ix*dwl,y,.5*(rho(ix,iy,0)+rho(ix,-iy,0))/an0
           endif
         enddo
+       write(37,*)
       enddo
 *      pti=.6
 *      eti=sqrt(am0k+pti*pti)
@@ -1556,7 +1570,10 @@ C
       IF(LPRO)CLOSE(10)
 C
       IF(LINI)THEN
-        FCHA4=FCHA()//FCHA()//FCHA()//FCHA()
+        if(.not.isFcha4Set) then
+         FCHA4=FCHA()//FCHA()//FCHA()//FCHA()
+         isFcha4Set=.true.
+        endif
 C
         FILNAM=FNAME//FCHA4//'.IFO'
         OPEN(21,FILE=FILNAM,FORM='FORMATTED'
