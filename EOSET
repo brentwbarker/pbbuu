@@ -4,10 +4,15 @@
 C
       PARAMETER(AONM=-.187240,BONM=.102623)
       PARAMETER(GMAONM=1.63395)  !soft  mo-indep
+C
+*     This was used in P. Danielewicz et al., Phys. Rev. Lett. 81
+*     (1998) 2438
 *      PARAMETER(AINM=-.115083,BINM=.0482459)
 *      PARAMETER(GMAINM=2.54271)  !stiff mo-indep
+C
+C     This used in P. Danielewicz, Nucl. Phys. A 673 (2000) 375
       PARAMETER(AINM=-.121258,BINM=.0521023)
-      PARAMETER(GMAINM=2.46238)  !stiff  NPA673(00)375
+      PARAMETER(GMAINM=2.46238)  !stiff mo-indep K=380MeV NPA673(00)375
       PARAMETER(ANM=NO*AONM+NI*AINM,BNM=NO*BONM+NI*BINM)
       PARAMETER(GMANM=NO*GMAONM+NI*GMAINM)
 C
