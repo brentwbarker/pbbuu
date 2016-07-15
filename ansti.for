@@ -266,11 +266,31 @@ c
 C
 c     Begin var declaration for vartl calculation (BWB)
 c     W. Reisdorf et al., Phys. Rev. Lett. 92, 232301 (2004).
-      pxDir=0
-      zSum=0    !BWB
-      vart=0    !variance of tranverse rapidity distribution
-      varl=0    !variance of longitudinal rapidity distribution
-c
+      logical calcVartl
+      parameter(calcVartl=.true.)
+c     variables about the y0 gate in tranverse, longitudinal directions
+      integer v_y0_cn   ! number of gates on y0
+      parameter(v_y0_cn=4)
+      real, dimension(v_y0_cn) :: v_y0t_mn, v_y0t_mx,v_y0z_mn,v_y0z_mx ! y0 min, max for transverse, longitudinal directions
+      data v_y0z_mn/-99,-1.7,-1.0,-0.5/
+      data v_y0z_mx/99,1.7,1.0,0.5/
+      data v_y0t_mn/-99,-99,-1.0,-99/
+      data v_y0t_mx/99,99,1.0,99/
+      real, dimension(v_y0_cn) :: pxDir, pxDir0
+      real, dimension(v_y0_cn) :: zSum  !sum of charge contributing to pxDir
+      real, dimension(v_y0_cn) :: varx, vart,varl,vartl,varxz !variance of x-dir, tranverse,
+                                                  ! longitudinal rapidity distribution,
+                                                  ! ratio of t/l,x/z
+
+      !initialize variables
+      do i=1,v_y0_cn
+         pxDir(i)=0
+         zSum(i)=0
+         varx(i)=0
+         vart(i)=0
+         varl(i)=0         
+      enddo
+
       runloop=0 !how many times loop runs
       totz=0    !charge per event counter
       nevt=0    !number of events counter
@@ -578,29 +598,34 @@ c how many times this loops runs
 c
 c     Start vartl calculation
 c
+      DO iy0=1,v_y0_cn
+
+c     calc rapidities in z,x,tranverse directions
+         y0z=yc/ypr
+         
+         y0x=0.5*log((eec+pxi)/(eec-pxi))/ypr
+
 c     Sums to create pxDir
       IF(bar(idc).GT..1.AND.zpa(idc).GT..1)THEN !if baryon and charged
          sg=1
          IF(pzc.LT.0.)THEN
             sg=-1
          ENDIF
-         pxDir=pxDir+sg*zpa(idc)*pxi/am
-         zSum=zSum+zpa(idc)
+         pxDir(iy0)=pxDir(iy0)+sg*zpa(idc)*pxi/am
+         zSum(iy0)=zSum(iy0)+zpa(idc)
 c
-c     Calculate varl and vart (finish calcing vartl later)
-c
-         varl=varl+yc*yc
-c     
          phir=(PI+PI)*getRan()
          cophir=cos(phiR)
          siphir=sin(phiR)
          plf=pxi*cophir+pyi*siphir
-         ylf=.5*log((eec+plf)/(eec-plf))
-         vart=vart+ylf*ylf
-      ENDIF
+         y0t=.5*log((eec+plf)/(eec-plf))/ypr
+
+c     gate on scaled CM rapidities
+         IF(y0z.LE.v_y0z_mn(iy0).OR.y0z.GE.v_y0z_mx(iy0))CYCLE
+         IF(y0t.LE.v_y0t_mn(iy0).OR.y0t.GE.v_y0t_mx(iy0))CYCLE
 
 !     calculate emitted particle yields
-      if(idc.ge.1.and.idc.le.5) then !if particle is p,n,d,t,he3
+      if(idc.ge.1.and.idc.le.5) then !if particle is p,n,d,h,t
        particleYields(idc)=particleYields(idc)+1
 
        ! filter on just midrapidity particles
@@ -611,7 +636,16 @@ c
        endif
       endif
 c     
+c     Calculate varl, varx, and vart (finish calcing vartl later)
+c     
+            varl(iy0)=varl(iy0)+y0z*y0z
+            varx(iy0)=varx(iy0)+y0x*y0x
+            vart(iy0)=vart(iy0)+y0t*y0t
+         ENDIF
+      ENDDO
+      
 c     BWB end
+
       CALL TEST(iIDC,PXIi,PYIi,PZCi,EECi,*50,IPART,IOV)
 *     if(ipart.le.0)goto 50
       if(ipart.ne.0.and.ZPA(iIDC).NE.0..AND.BAR(iIDC).NE.0.)then
@@ -1109,19 +1143,26 @@ c         err0b(ibin)=any0b(ibin)/((err0b(ibin))**(0.5))
       ENDDO
 c
 c     vartl out-of-loop calc
-      IF(zSum.NE.0.)THEN
-         pxDir=pxDir/zSum
-         pxDir0=pxDir/(bb1*gg1)
-      ENDIF
+      DO iy0=1,v_y0_cn
+       IF(zSum(iy0).NE.0.)THEN
+        pxDir(iy0)=pxDir(iy0)/zSum(iy0)
+
+        pxDir0(iy0)=pxDir(iy0)/(bb1*gg1)
+       ENDIF
 c      write(*,*)'pxDir0=',pxDir0
-c
-c     calc vartl
-      IF(varl.NE.0.)THEN
-         vartl=sqrt(vart/varl)
-      ENDIF
-c      write(*,*)'vartl=',vartl
-      WRITE(*,*)'pxDir0,vartl: ',pxDir0,' ',vartl
-      WRITE(*,*)'runloop: ',runloop
+c     
+c      calc vartl
+       IF(varl(iy0).NE.0.)THEN
+        vartl(iy0)=sqrt(vart(iy0)/varl(iy0))
+        varxz(iy0)=sqrt(varx(iy0)/varl(iy0))
+       ENDIF
+
+ 900   FORMAT(A,1X,F6.2,1X,F6.2,1X,E11.4,1X,E11.4,1X,E11.4)
+       write(*,900)'y0_zmn,zmx,tmn,tmx,pxDir0,vartl,varxz:'
+     w        ,v_y0z_mn(iy0),v_y0z_mx(iy0),v_y0t_mn(iy0),v_y0t_mx(iy0)
+     r        ,pxDir0(iy0),vartl(iy0),varxz(iy0)
+c      WRITE(*,*)'runloop: ',runloop
+      ENDDO
 
 !     particle yield calc, write:
       write(*,*)'particleYields=',particleYields/real(nto)
