@@ -85,4 +85,13 @@
       PARAMETER (FRAT=1.)                 !rate renormalization; normally 1
 !---------------------------------------------------------------
       LOGICAL LCSM
-      PARAMETER(LCSM=.truE.)  !prescribed elastic in-medium cs used
+      LOGICAL rostockCS
+      LOGICAL fuchsCS
+      LOGICAL zhangCS
+      real, parameter :: fimcs=0.6 !< in-medium CS factor, used in coll16.for
+!
+! CS reduction models (only set one of them to true, all others must be false!)
+      PARAMETER(LCSM=.true.)  !prescribed elastic in-medium cs used
+      PARAMETER(rostockCS=.false.)
+      PARAMETER(fuchsCS=.false.)
+      PARAMETER(zhangCS=.false.)

@@ -2048,7 +2048,7 @@ C  (in practice, the increased suppression of elastic makes no difference)
           csdb=.079577*sigbu
           sigof=(csde+csdb)*12.57
           if(rhoxi.gt.0.)then
-            sigmax=1./(rhoxi*an0)**.667  *.85  !.85
+            sigmax=1./(rhoxi*an0)**.667  *FIMCS
             if(sigof/sigmax.gt..01)then
               redf=tanh(sigof/sigmax)/(sigof/sigmax)
               redf=((csde+csdb)*redf-csdb)/max(csde,.001)
@@ -2063,13 +2063,81 @@ C  (in practice, the increased suppression of elastic makes no difference)
         IF(LCSM)THEN
           csd=csdif(epcm,cths,max(0.,sigo-sigit),idp,jdp)
           sigof=csd*12.57
-          sigmax=1./(rhoxi*an0)**.667  *.85  !.85
+          sigmax=1./(rhoxi*an0)**.667  *FIMCS
           if(sigof/sigmax.gt..05)then
             redf=tanh(sigof/sigmax)/(sigof/sigmax)
             if(getRan().gt.redf)goto 150
           endif
         ENDIF
       ENDIF
+
+      IF(rostockCS)THEN
+       if(idp.le.2.and.jdp.le.2)then
+        IF(CALO)CALL LOCPA
+        call loren(-bxpt*gmpt,-bypt*gmpt,-bzpt*gmpt,gmpt
+     l             ,pxi,pyi,pzi,eei,pcxi,pcyi,pczi,eeci)
+        call loren(-bxpt*gmpt,-bypt*gmpt,-bzpt*gmpt,gmpt
+     l             ,pxj,pyj,pzj,eej,pcxj,pcyj,pczj,eecj)
+        tcij= sqrt(pcxi**2+pcyi**2+pczi**2+am0k)
+     t       +sqrt(pcxj**2+pcyj**2+pczj**2+am0k)-2.*am0
+        redf=exp(-rhoxi*.6/(1.+(tcij/.15)**2))
+**r            psig0=.243*rhoxi**.667
+**r            redf=1./(1.+sigo*psig0/.7)
+        if(getRan().gt.redf)goto 150
+       endif
+      ENDIF
+c
+c     crude parameterization of FIG. 11,12, total np/pp CS, from 
+c     C. Fuchs, Amand Faessler, M. El-Shabshiry, Phys. Rev. C 64, 024003 (2001)
+c     updated 2007-11-12 BWB
+      IF(fuchsCS)THEN
+       IF(idp.LE.2.AND.jdp.LE.2)THEN
+        IF(calo) CALL LOCPA ! everyone else was doing it...
+        call loren(-bxpt*gmpt,-bypt*gmpt,-bzpt*gmpt,gmpt
+     l             ,pxi,pyi,pzi,eei,pcxi,pcyi,pczi,eeci)
+        call loren(-bxpt*gmpt,-bypt*gmpt,-bzpt*gmpt,gmpt
+     l             ,pxj,pyj,pzj,eej,pcxj,pcyj,pczj,eecj)
+
+        ! tcij is the total kinetic energy of the two particles
+        ! in the rest frame of the local medium
+        tcij= sqrt(pcxi**2+pcyi**2+pczi**2+am0k)
+     t       +sqrt(pcxj**2+pcyj**2+pczj**2+am0k)-2.*am0
+
+        ! qij is meaningless, actually. I meant to do
+        ! (p_1-p_2)/2 in the rest frame of the particle.
+        qij=sqrt(tcij*2*am0) 
+        IF(idp.EQ.jdp)THEN
+         redf=exp(-1.7*rhoxi/(1+(qij*1000/150)**3))
+        ELSE
+         redf=exp(-1.4*rhoxi/(1+(qij*1000/250)**2))
+        ENDIF
+        if(getRan().gt.redf)goto 150
+       ENDIF
+      ENDIF
+
+c     crude parametrization of FIG. 6,8, total pp/pn CS with 3BF, from
+c     H. F. Zhang et al., Phys. Rev. C 76, 054001 (2007)
+c     updated 2008-05-06 BWB
+      IF(zhangCS)THEN
+       IF(idp.LE.2.AND.jdp.LE.2)THEN
+        IF(calo) CALL LOCPA ! everyone else was doing it...
+        call loren(-bxpt*gmpt,-bypt*gmpt,-bzpt*gmpt,gmpt
+     l             ,pxi,pyi,pzi,eei,pcxi,pcyi,pczi,eeci)
+        call loren(-bxpt*gmpt,-bypt*gmpt,-bzpt*gmpt,gmpt
+     l             ,pxj,pyj,pzj,eej,pcxj,pcyj,pczj,eecj)
+        tcij= sqrt(pcxi**2+pcyi**2+pczi**2+am0k)
+     t       +sqrt(pcxj**2+pcyj**2+pczj**2+am0k)-2.*am0
+        qij=sqrt(tcij*2*am0) ! relative momentum between i,j
+        IF(idp.EQ.jdp)THEN
+         redf=exp(-6.2/(30*qij/rhoxi+1))
+        ELSE
+         redf=exp(-4.6*rhoxi**(0.75)/(25*qij+1))
+        ENDIF
+        if(getRan().gt.redf)goto 150
+       ENDIF
+      ENDIF
+
+
 ***      CTHS=2.*getRan()-1.                   !!!!!!!!!!!!!!!!!
 *c  for Jorg
 *      if(pic.lt..05)goto 150
