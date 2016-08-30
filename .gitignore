@@ -1,6 +1,17 @@
+*.COR
+*.DAT
+*.IFO
 *.mod
+*.mom
 *.o
+*.parts
+*.PRF
+*.SHP
+*.spa
 *.swp
+*.TOP
+a.out
 buu
 doc/html/
+pbuuproc
 thomas
