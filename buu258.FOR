@@ -1560,7 +1560,7 @@ C
       ISTEP=ISTEP+1
       PRI=(ISTEP/NPRI)*NPRI.EQ.ISTEP.OR.ISTEP.EQ.NSTEP
 
-c      call outParticles
+      call outParticles
 
       GOTO 350 !end main timestep loop
 C
