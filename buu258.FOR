@@ -309,6 +309,7 @@ C*  densities larger than 95% of the normal density, rho > 0.95
 C*  rho_0.
 C*
       use bwbfunc
+      use global
       INCLUDE 'PARTIC15'
 C  THESES ARE PTCLE ID'S: 0 - EMPTY, 1 - PROTON, 2 - NEUTRON
 C  3 - DEUTERON, NEGATIVE - WENT OUT OF THE COMPUTATIONAL AREA
@@ -1374,6 +1375,7 @@ c
       if(fbinam(1:1).eq.'0')kb=2
       if(.not.isFcha4Set) then
        FCHA4=FCHA()//FCHA()//FCHA()//FCHA()
+       fbase=fname//fcha4
        isFcha4Set=.true.
       endif
       fillam=fname//fcha4//fbinam(1:2)//fiinam(1:5)//'.spa'
@@ -1572,6 +1574,7 @@ C
       IF(LINI)THEN
         if(.not.isFcha4Set) then
          FCHA4=FCHA()//FCHA()//FCHA()//FCHA()
+         fbase=fname//fcha4
          isFcha4Set=.true.
         endif
 C

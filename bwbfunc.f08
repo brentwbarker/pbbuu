@@ -6,6 +6,7 @@ contains
  subroutine outParticles
   use iso_fortran_env
   use arbstorage
+  use global
   include 'PARTIC15'
 
   integer :: outFileU, outFile2U !< file unit for output file
@@ -27,14 +28,14 @@ contains
 
   write(*,'(3A)')'charIFile="',charIFile,'"'
 
-  open(newunit=outFileU, file="outParticles"//charIFile//".dat", status="replace", access="stream")
+!  open(newunit=outFileU, file="outParticles"//charIFile//".dat", status="replace", access="stream")
 
-  open(newunit=outFile2U, file="outMyParticles"//charIFile//".dat", status="replace", access="stream")
+  open(newunit=outFile2U, file=fbase//charIFile//".parts", status="replace", access="stream")
 
   do ii=1,nq
    if(id(ii).ne.0) then
-    write(outFileU)int(id(ii),INT8),int(ipti(ii),INT8),ncs(ii),xx(ii) &
-                   ,yy(ii),zz(ii),px(ii),py(ii),pz(ii)
+!    write(outFileU)int(id(ii),INT8),int(ipti(ii),INT8),ncs(ii),xx(ii) &
+!                   ,yy(ii),zz(ii),px(ii),py(ii),pz(ii)
 
     call getBits_int(myInt,int(id(ii),INT32),8,.true.)
     write(outFile2U)myInt
@@ -66,7 +67,7 @@ contains
 
   iFile=iFile+1
 
-  close(outFileU)
+!  close(outFileU)
   close(outFile2U)
 
  end subroutine outParticles

@@ -8,6 +8,9 @@ module global
 
  integer, private :: piseed !< iseed for pawel's RNG
 
+ !> basename of run (7-characters, first 3 set in NUCLS, others random
+ character(len=7) :: fbase
+
 contains
 
  !turns the random number call from a subroutine into a function
