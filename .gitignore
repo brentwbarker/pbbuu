@@ -4,6 +4,10 @@
 *.mod
 *.mom
 *.o
+
+# git original pre-merge files
+*.orig
+
 *.parts
 *.PRF
 *.SHP
