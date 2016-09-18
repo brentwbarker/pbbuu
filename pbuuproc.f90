@@ -21,11 +21,18 @@ program pbuuproc
  type (BVector_dble) :: py !< vector of positions
  type (BVector_dble) :: pz !< vector of positions
 
+ real(kind=REAL64), parameter :: pi = 4*atan(1._real64)
+ real(kind=REAL64), parameter :: mass = 938.0_REAL64
  integer :: iFile = 50 !< number of file output
+
+
  character(len=4) :: charIFile !< character representation of iFile, padded w zeros
 
  integer :: infileu
  integer :: ii, stat, ip
+
+ ! average kinetic energy, number density variables
+ real (kind=REAL64) :: kav,dkav,nn,dnn
 
  ! momentum histogram for temperature calculation
  logical, parameter :: histp = .true. !< create histogram?
@@ -110,20 +117,31 @@ program pbuuproc
  histp_dndpy = 0
  histp_dndpz = 0
 
- 
+
  do ii=histp_ipmin,histp_ipmax
   histp_pp(ii) = histp_minp+(ii-histp_ipmin+0.5_REAL64)*histp_dp
   write(*,*)'histp_ip,histp_pp=',ii,histp_pp(ii)
  enddo
 
- do ii=0,ids%size()-1
+ ! pre-loop calc for kav,nn
+ kav=0
+ dkav=0
+ nn=0
+ dnn=0
+
+  do ii=0,ids%size()-1
 !  if(ncs%values(ii)>=0) then
 
   if(ids%values(ii).ne.1) cycle ! filter for protons only
+
   if(sqrt(xx%values(ii)**2+yy%values(ii)**2+zz%values(ii)**2).gt.histp_rmax) cycle ! filter for central region
 
 !  write(*,*) ids%values(ii), xx%values(ii), yy%values(ii), zz%values(ii), px%values(ii), py%values(ii), pz%values(ii)
 !  endif
+
+  ! in-loop calc of kav,nn
+  kav=kav+sqrt(px%values(ii)**2 + py%values(ii)**2 + pz%values(ii)**2 + mass**2) - mass
+  nn = nn + 1
 
   ! in-loop calc of momentum histogram 'histp'
   ip = nint(px%values(ii)/histp_dp)
@@ -138,6 +156,12 @@ program pbuuproc
   ! check for in angular range
 
  enddo
+
+ ! after-loop calc for kav, nn
+ kav = kav/nn
+ dkav = kav / sqrt(nn)
+ nn = nn / ((4._REAL64/3._REAL64)*pi*histp_rmax**3)
+ dnn = dkav/kav * nn
 
  do ii=histp_ipmin,histp_ipmax
 
