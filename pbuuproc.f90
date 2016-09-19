@@ -160,7 +160,7 @@ program pbuuproc
  ! after-loop calc for kav, nn
  kav = kav/nn
  dkav = kav / sqrt(nn)
- nn = nn / ((4._REAL64/3._REAL64)*pi*histp_rmax**3)
+ nn = nn / ((4._REAL64/3._REAL64)*pi*histp_rmax**3) / nqu
  dnn = dkav/kav * nn
 
  do ii=histp_ipmin,histp_ipmax
