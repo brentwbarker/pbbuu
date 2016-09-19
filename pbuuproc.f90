@@ -22,7 +22,7 @@ program pbuuproc
  type (BVector_dble) :: pz !< vector of positions
 
  real(kind=REAL64), parameter :: pi = 4*atan(1._real64)
- real(kind=REAL64), parameter :: mass = 938.0_REAL64
+ real(kind=REAL64), parameter :: mass = 0.938_REAL64
  integer :: iFile = 50 !< number of file output
 
 
