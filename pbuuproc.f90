@@ -171,6 +171,18 @@ program pbuuproc
 
  enddo
 
+
+ write(*,*)
+ write(*,*)
+ write(*,*)'# kav (GeV), dkav (GeV)'
+ write(*,*)kav,dkav
+
+ write(*,*)
+ write(*,*)
+ write(*,*)'# nn (fm^-3), dnn (fm^-3)'
+ write(*,*)nn,dnn
+
+
  write(*,*)
  write(*,*)
  write(*,*)'# histp histograms'
