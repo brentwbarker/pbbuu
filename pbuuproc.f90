@@ -162,6 +162,7 @@ program pbuuproc
  dkav = kav / sqrt(nn)
  nn = nn / ((4._REAL64/3._REAL64)*pi*histp_rmax**3)
  dnn = dkav/kav * nn
+ write(*,*)'kav,dkav,nn,dnn=',kav,dkav,nn,dnn
 
  do ii=histp_ipmin,histp_ipmax
 
