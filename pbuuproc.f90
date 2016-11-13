@@ -160,7 +160,7 @@ program pbuuproc
  ! after-loop calc for kav, nn
  kav = kav/nn
  dkav = kav / sqrt(nn)
- nn = nn / ((4._REAL64/3._REAL64)*pi*histp_rmax**3)
+ nn = nn / ((4._REAL64/3._REAL64)*pi*histp_rmax**3) / nqu
  dnn = dkav/kav * nn
  write(*,*)'kav,dkav,nn,dnn=',kav,dkav,nn,dnn
 
@@ -171,6 +171,18 @@ program pbuuproc
   histp_dndpz(ii) = histp_dndpz(ii)/nqu
 
  enddo
+
+
+ write(*,*)
+ write(*,*)
+ write(*,*)'# kav (GeV), dkav (GeV)'
+ write(*,*)kav,dkav
+
+ write(*,*)
+ write(*,*)
+ write(*,*)'# nn (fm^-3), dnn (fm^-3)'
+ write(*,*)nn,dnn
+
 
  write(*,*)
  write(*,*)
