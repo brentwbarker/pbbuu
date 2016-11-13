@@ -51,7 +51,7 @@ program pbuuproc
  real(kind=REAL64), parameter  :: histp_thCmsMin = 0 & !< CMS theta min
                                 , histp_thCmsMax = 180  !< CMS theta max
 
- real(kind=REAL64), parameter :: histp_rmax = 1._REAL64 !< radius of central cell to gate on
+ real(kind=REAL64), parameter :: histp_rmax = 2._REAL64 !< radius of central cell to gate on
 
  ids = new_BVector_int()
  ncs = new_BVector_int()
