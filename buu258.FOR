@@ -435,8 +435,17 @@ c
 *     common/ctemp/temp
       COMMON/CSEED/ISEED
 C
+      namelist/input/writeOutParticles
+      integer :: inputFileUnit !< file unit for input namelist file
+
       logical isFcha4Set
       isFcha4Set=.false.
+
+      call get_command_argument(1,stringBuffer)
+      inputFileName = trim(stringBuffer)
+      open(  newunit=inputFileUnit, file=inputFileName, status='old'
+     &     , delim='APOSTROPHE')
+      read(inputFileUnit, nml=input)
 C
       INCLUDE 'SPEC1'
 C  IMPACT PARAMETER
@@ -1560,7 +1569,7 @@ C
       ISTEP=ISTEP+1
       PRI=(ISTEP/NPRI)*NPRI.EQ.ISTEP.OR.ISTEP.EQ.NSTEP
 
-      call outParticles
+      if(writeOutParticles) call outParticles
 
       GOTO 350 !end main timestep loop
 C

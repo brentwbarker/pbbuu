@@ -11,6 +11,12 @@ module global
  !> basename of run (7-characters, first 3 set in NUCLS, others random
  character(len=7) :: fbase
 
+ ! output settings
+ character(len=:), allocatable :: inputFileName
+ character(len=132) :: stringBuffer
+
+ logical :: writeOutParticles !< write all particles out every timestep
+
 contains
 
  !turns the random number call from a subroutine into a function
