@@ -374,7 +374,7 @@ do
 #	    make
 	    
 	    echo Running buu
-	    ./buu > run-in-progress.stdout || { echo run buu failed && exit 64; }
+	    ./buu inputsample.nml > run-in-progress.stdout || { echo run buu failed && exit 64; }
 	    
 	    # find file that "run" created
 	    testFile=`ls --sort=time |     # list dir, sorted by time
