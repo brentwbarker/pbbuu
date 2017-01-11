@@ -282,6 +282,27 @@ c     variables about the y0 gate in tranverse, longitudinal directions
                                                   ! longitudinal rapidity distribution,
                                                   ! ratio of t/l,x/z
 
+      ! variable declaration for calculation of fourier coefficients (v1, v2, elliptic flow, etc)
+      integer :: fourier_outFileUnit
+      integer, parameter :: fourier_nv = 2      !< number of Fourier coefficients to calculate
+     &                     ,fourier_ny = 11     !< number of rapidity bins
+     &                     ,fourier_npid = 5     !< number of PIDs to calculate for
+
+      real, parameter :: fourier_ymin = -1.0 !< minimum rapidity to calculate (y/y_projectile)
+     &                  ,fourier_ymax =  1.0 !< maximum rapidity to calculate (y/y_projectile)
+     &              ,fourier_dy = (fourier_ymax-fourier_ymin)/fourier_ny !< size of y bin
+      real, dimension(fourier_npid,fourier_nv, fourier_ny)
+     & :: fourier_vn  !< Fourier coefficients v_n
+     &   ,fourier_dvn !< uncertainty of Fourier coefficients v_n, calculated as standard
+                      !+ deviation of the mean, dvn = ( <x^2> - <x>^2 ) / \sqrt(N)
+      integer, dimension(fourier_npid, fourier_nv, fourier_ny)
+     & :: fourier_vnum !< number of particles in each bin
+
+      ! initialize
+      fourier_vn = 0.0
+      fourier_dvn = 0.0
+      fourier_vnum = 0
+
       !initialize variables
       do i=1,v_y0_cn
          pxDir(i)=0
@@ -643,7 +664,28 @@ c
             vart(iy0)=vart(iy0)+y0t*y0t
          ENDIF
       ENDDO
-      
+
+      ! begin in-loop calc of Fourier coefficients 
+
+      ! select ybin for this particle
+      iy = int((yc/ypr - fourier_ymin)/fourier_dy+1)
+
+      ! if iy is in range of y bins desired and this is a particle species we are calculating for
+      if (iy.ge.1.and.iy.le.fourier_ny
+     &    .and.idc.ge.1.and.idc.le.fourier_npid) then
+       do iv = 1,fourier_nv
+
+        fourier_vn(idc,iv,iy) = fourier_vn(idc,iv,iy)
+     &   + cos(iv*atan2(sqrt(pxi**2+pyi**2),pzi))
+
+        fourier_dvn(idc,iv,iy) = fourier_dvn(idc,iv,iy)
+     &   + (cos(iv*atan2(sqrt(pxi**2+pyi**2),pzi)))**2
+
+        fourier_vnum(idc,iv,iy) = fourier_vnum(idc,iv,iy) + 1
+
+       enddo !iv
+      endif !iy is in range
+
 c     BWB end
 
       CALL TEST(iIDC,PXIi,PYIi,PZCi,EECi,*50,IPART,IOV)
@@ -1187,6 +1229,36 @@ c      WRITE(*,*)'runloop: ',runloop
       write(*,*)'d-like-corrs-cut/p,err=',partYield_dlp,partYield_dlpErr
       write(*,*)'d/p,err=',partYield_dp,partYield_dpErr
 c
+      ! post-loop calc for Fourier coefficients. These are all whole-array operations.
+         fourier_vn = fourier_vn / fourier_vnum
+         fourier_dvn = fourier_dvn / fourier_vnum
+         fourier_dvn = (fourier_dvn - fourier_vn**2)
+     &                 /sqrt(real(fourier_vnum))
+ 
+      open(newunit=fourier_outFileUnit, file=fname(1)//'-fourier.dat'
+     &   , status='unknown')
+
+      write(fourier_outFileUnit,*)
+     & '# Fourier coefficients <cos (n*phi)> for various y/yp bins
+     & # given y/yp value is center of bin'
+
+      write(fourier_outFileUnit,*)
+ 
+      do ipid = 1, fourier_npid
+
+       write(fourier_outFileUnit,*)'# PID=',ipid
+
+       write(fourier_outFileUnit,9001)
+     &  (iv,iv,iv=1,fourier_nv)
+9001   format('# y/yp,',(' v_',i1,', dv_',i1))
+
+       do iy = 1, fourier_ny
+        write(fourier_outFileUnit,*)fourier_ymin+(iy-0.5)*fourier_dy
+     &   , (fourier_vn(ipid,iv,iy), fourier_dvn(ipid,iv,iy)
+     &      , iv=1,fourier_nv)
+       enddo !iy
+      enddo !iv
+
 
 c     BWB end
       END
