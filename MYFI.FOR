@@ -11,7 +11,7 @@ C  Adapted by P. D. in July '90
 
         PARAMETER (RAD= 57.29578)
         PARAMETER (EUNIT= 931.5)        ! the mass of an amu
-        INTEGER*4 ISEED
+        INTEGER(kind=4) ISEED
         LOGICAL   IMF_EXPT
 
         DIMENSION ECAF2(4), EPUNCH(5)

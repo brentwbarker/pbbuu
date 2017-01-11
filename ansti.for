@@ -4,7 +4,7 @@
       PARAMETER (IZ1=79,IZ2=79)
       PARAMETER (TLAB=0.8)   !energy in GeV
       PARAMETER (NFI=1)
-      CHARACTER*7 FNAME(NFI)
+      CHARACTER(len=7) FNAME(NFI)
       DIMENSION NQU(NFI)
 *      DATA NQU/200/
       DATA NQU/NFI*300/   !num of events*num of files
@@ -256,8 +256,8 @@ C
 C
       COMMON/RAP/YBEAM,YCM,PF,RENAN,GG1,BB1,GG2,BB2
 C
-      INTEGER*2 IXI,IYI,IZI
-      INTEGER*2 IDIC
+      INTEGER(kind=2) IXI,IYI,IZI
+      INTEGER(kind=2) IDIC
       CHARACTER FILNAM*14
 C
       PARAMETER (AN0=.160)
@@ -297,6 +297,8 @@ c     variables about the y0 gate in tranverse, longitudinal directions
                       !+ deviation of the mean, dvn = ( <x^2> - <x>^2 ) / \sqrt(N)
       integer, dimension(fourier_npid, fourier_nv, fourier_ny)
      & :: fourier_vnum !< number of particles in each bin
+
+      logical :: goto50 !< variable which, when tested and is true, means to goto line 50 (skip the rest of this particle processing)
 
       ! initialize
       fourier_vn = 0.0
@@ -538,6 +540,7 @@ C
 c
 c     Start main loop.
  50   CONTINUE
+      goto50=.false.
       READ(11,END=250)IDIC,IXI,IYI,IZI
       if(lold(kf).and.idic.ge.4)idic=idic+3_2  !idic is KIND=2, so specify this for the integer "3"
 
@@ -688,7 +691,8 @@ c
 
 c     BWB end
 
-      CALL TEST(iIDC,PXIi,PYIi,PZCi,EECi,*50,IPART,IOV)
+      CALL TEST(iIDC,PXIi,PYIi,PZCi,EECi,goto50,IPART,IOV)
+      if(goto50) goto 50
 *     if(ipart.le.0)goto 50
       if(ipart.ne.0.and.ZPA(iIDC).NE.0..AND.BAR(iIDC).NE.0.)then
          zpart=zpart+zpa(iidc)
@@ -1282,7 +1286,7 @@ C
       END
 
 
-      SUBROUTINE TEST(IDP,PXP,PYP,PZP,EEP,*,IPART,IOV)
+      SUBROUTINE TEST(IDP,PXP,PYP,PZP,EEP,goto50,IPART,IOV)
 C  TESTS A QUASIPARTICLE AGAINST
 C  A PLASTIC BALL DEFINITION OF PARTICIPANT
 C  AND ACCEPTED PROTON/DEUTERON
@@ -1302,11 +1306,15 @@ C  AND ACCEPTED PROTON/DEUTERON
       PARAMETER (B4E=.0286,AM4E=4.*AM0-B4E)
       PARAMETER (DPF=.040)
 C
+      logical, intent(out) :: goto50 !< set to true to goto 50 on return
       LOGICAL TAKE
       LOGICAL FIRST
 C
       DATA FIRST/.TRUE./
 C
+      !initialize
+      goto50=.false.
+
       IF(FIRST)THEN
         GG=COSH(YCM)
         PCM=AMB*SINH(YCM)
@@ -1341,7 +1349,10 @@ C
         FIRST=.FALSE.
       ENDIF
 C
-      IF(IDP.EQ.0.)RETURN 1
+      IF(IDP.EQ.0.) then
+       goto50=.true.
+       RETURN
+      endif
 C
       IPART=0
       IOV=0
