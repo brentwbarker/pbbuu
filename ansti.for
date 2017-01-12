@@ -679,10 +679,10 @@ c
        do iv = 1,fourier_nv
 
         fourier_vn(idc,iv,iy) = fourier_vn(idc,iv,iy)
-     &   + cos(iv*atan2(sqrt(pxi**2+pyi**2),pzi))
+     &   + cos(iv*acos(pxi/sqrt(pxi**2+pyi**2)))
 
         fourier_dvn(idc,iv,iy) = fourier_dvn(idc,iv,iy)
-     &   + (cos(iv*atan2(sqrt(pxi**2+pyi**2),pzi)))**2
+     &   + (cos(iv*acos(pxi/sqrt(pxi**2+pyi**2))))**2
 
         fourier_vnum(idc,iv,iy) = fourier_vnum(idc,iv,iy) + 1
 
