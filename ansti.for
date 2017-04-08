@@ -298,12 +298,24 @@ c     variables about the y0 gate in tranverse, longitudinal directions
       integer, dimension(fourier_npid, fourier_nv, fourier_ny)
      & :: fourier_vnum !< number of particles in each bin
 
+      ! coalescence-invariant calculation, treating all nucleons as free, even those within composite particles
+      integer :: fourier_ciOutFileUnit
+      real, dimension(2, fourier_nv, fourier_ny)
+     & :: fourier_civn  !< coalescence-invariant Fourier coefficients v_n
+     &   ,fourier_cidvn !< uncertainty of coalescence-invariant Fourier coefficients v_n, calculated like fourier_dvn
+      integer, dimension(2, fourier_nv, fourier_ny)
+     & :: fourier_civnum !< number of particles in each bin
+
+
       logical :: goto50 !< variable which, when tested and is true, means to goto line 50 (skip the rest of this particle processing)
 
       ! initialize
       fourier_vn = 0.0
       fourier_dvn = 0.0
+      fourier_civn = 0.0
+      fourier_cidvn = 0.0
       fourier_vnum = 0
+      fourier_civnum = 0
 
       !initialize variables
       do i=1,v_y0_cn
@@ -692,6 +704,25 @@ c
 
         fourier_vnum(idc,iv,iy) = fourier_vnum(idc,iv,iy) + 1
 
+        ! coalescence-invariant coefficients
+        fourier_civn(1,iv,iy) = fourier_civn(1,iv,iy)
+     &   + zpa(idc)*cos(iv*acos(pxi/sqrt(pxi**2+pyi**2)))
+
+        fourier_cidvn(1,iv,iy) = fourier_cidvn(1,iv,iy)
+     &   + zpa(idc)*(cos(iv*acos(pxi/sqrt(pxi**2+pyi**2))))**2
+
+        fourier_civnum(1,iv,iy)
+     &   = fourier_civnum(1,iv,iy) + int(zpa(idc))
+
+        fourier_civn(2,iv,iy) = fourier_civn(2,iv,iy)
+     &   + (bar(idc)-zpa(idc))*cos(iv*acos(pxi/sqrt(pxi**2+pyi**2)))
+
+        fourier_cidvn(2,iv,iy) = fourier_cidvn(2,iv,iy)
+     &   + ((bar(idc)-zpa(idc))
+     &     *(cos(iv*acos(pxi/sqrt(pxi**2+pyi**2)))))**2
+
+        fourier_civnum(2,iv,iy)
+     &   = fourier_civnum(2,iv,iy) + int(bar(idc)-zpa(idc))
        enddo !iv
       endif !iy is in range
 
@@ -1245,6 +1276,11 @@ c
          fourier_dvn = sqrt(fourier_dvn - fourier_vn**2)
      &                 /sqrt(real(fourier_vnum))
  
+         fourier_civn = fourier_civn / fourier_civnum
+         fourier_cidvn = fourier_cidvn / fourier_civnum
+         fourier_cidvn = sqrt(fourier_cidvn - fourier_civn**2)
+     &                 /sqrt(real(fourier_civnum))
+
       open(newunit=fourier_outFileUnit, file=fname(1)//'-fourier.dat'
      &   , status='unknown')
 
@@ -1265,6 +1301,34 @@ c
        do iy = 1, fourier_ny
         write(fourier_outFileUnit,*)fourier_ymin+(iy-0.5)*fourier_dy
      &   , (fourier_vn(ipid,iv,iy), fourier_dvn(ipid,iv,iy)
+     &      , iv=1,fourier_nv)
+       enddo !iy
+      enddo !iv
+
+      ! now for coalescence-invariant
+      open(newunit=fourier_ciOutFileUnit
+     &   , file=fname(1)//'-fourier_ci.dat'
+     &   , status='unknown')
+
+      write(fourier_ciOutFileUnit,*)
+     & '# Fourier coefficients <cos (n*phi)> for various y/yp bins'
+      write(fourier_ciOutFileUnit,*)
+     & '# The given y/yp value is the center of bin'
+
+ 
+      do ipid = 1, 2
+
+       write(fourier_ciOutFileUnit,*)
+       write(fourier_ciOutFileUnit,*)
+
+       write(fourier_ciOutFileUnit,*)'# PID=',ipid
+
+       write(fourier_ciOutFileUnit,9001)
+     &  (iv,iv,iv=1,fourier_nv)
+
+       do iy = 1, fourier_ny
+        write(fourier_ciOutFileUnit,*)fourier_ymin+(iy-0.5)*fourier_dy
+     &   , (fourier_civn(ipid,iv,iy), fourier_cidvn(ipid,iv,iy)
      &      , iv=1,fourier_nv)
        enddo !iy
       enddo !iv
