@@ -673,16 +673,22 @@ c
       ! select ybin for this particle
       iy = int((yc/ypr - fourier_ymin)/fourier_dy+1)
 
+!      write(*,*)'idc,bar,zpa:', idc, bar(idc), zpa(idc) 
+
+      theta=atan2(pyi,pxi)
+
       ! if iy is in range of y bins desired and this is a particle species we are calculating for
       if (iy.ge.1.and.iy.le.fourier_ny
      &    .and.idc.ge.1.and.idc.le.fourier_npid) then
        do iv = 1,fourier_nv
 
         fourier_vn(idc,iv,iy) = fourier_vn(idc,iv,iy)
-     &   + cos(iv*acos(pxi/sqrt(pxi**2+pyi**2)))
+     &   + cos(iv*theta)
+!     &   + cos(iv*asin(pyi/sqrt(pxi**2+pyi**2)))
 
         fourier_dvn(idc,iv,iy) = fourier_dvn(idc,iv,iy)
-     &   + (cos(iv*acos(pxi/sqrt(pxi**2+pyi**2))))**2
+     &   + (cos(iv*theta))**2
+!     &   + (cos(iv*asin(pyi/sqrt(pxi**2+pyi**2))))**2
 
         fourier_vnum(idc,iv,iy) = fourier_vnum(idc,iv,iy) + 1
 
@@ -1236,7 +1242,7 @@ c
       ! post-loop calc for Fourier coefficients. These are all whole-array operations.
          fourier_vn = fourier_vn / fourier_vnum
          fourier_dvn = fourier_dvn / fourier_vnum
-         fourier_dvn = (fourier_dvn - fourier_vn**2)
+         fourier_dvn = sqrt(fourier_dvn - fourier_vn**2)
      &                 /sqrt(real(fourier_vnum))
  
       open(newunit=fourier_outFileUnit, file=fname(1)//'-fourier.dat'
