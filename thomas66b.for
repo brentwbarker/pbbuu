@@ -8,9 +8,11 @@ C
       DIMENSION X(N),WK(N*N+4*N+1)
       DIMENSION XB(N)         !best
 C
-      DATA ISEED/1234567/
+      integer :: ISEED=1234567
 C
 C
+      call global_ranInit(iseed)
+
       FNAS=FNAME//'.SHP'
       CALL SPACO(FNAS)
       OPEN(17,FILE=FNAS,STATUS='UNKNOWN')

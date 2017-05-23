@@ -333,6 +333,7 @@ do
 	    fi
 
 	    perl -i -pe "s/ISEED=[0-9]+/ISEED=${randseed}/" buu258.FOR
+	    perl -i -pe "s/ISEED=[0-9]+/ISEED=${randseed}/" thomas66b.for
 #	    perl -i -pe "s/ISEED\/.*\//ISEED\/${randseed}\//" ansti.for
 		
 	    # set E
