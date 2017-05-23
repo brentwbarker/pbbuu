@@ -1303,6 +1303,10 @@ c
      &   , (fourier_vn(ipid,iv,iy), fourier_dvn(ipid,iv,iy)
      &      , iv=1,fourier_nv)
        enddo !iy
+
+      write(fourier_outFileUnit,*)
+      write(fourier_outFileUnit,*)
+
       enddo !iv
 
       ! now for coalescence-invariant
