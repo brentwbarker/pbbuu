@@ -4269,6 +4269,11 @@ C
         READ(17,'(1X)')
  20     CONTINUE
         CLOSE(17)
+
+!! diagnostic - set identical shape for projectile and target
+!        shape(:,2,:)=0.5*(shape(:,1,:)+shape(:,2,:))
+!        shape(:,1,:)=shape(:,2,:)
+
         do k=ks,kf
           do idp=1,2
             arf=0.
