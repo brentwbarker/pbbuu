@@ -1582,6 +1582,8 @@ C
       totpy=0
       totpz=0
       do ii=1,nq
+       ! if not an existent particle
+       if(abs(id(ii)).lt.1.or.abs(id(ii)).gt.16) cycle
        totpx=totpx+px(ii)
        totpy=totpy+py(ii)
        totpz=totpz+pz(ii)
