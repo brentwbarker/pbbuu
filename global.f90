@@ -17,6 +17,12 @@ module global
 
  logical :: writeOutParticles !< write all particles out every timestep
 
+ real(kind=REAL64), parameter, dimension(1:5) &
+  :: masses = (/.9383,  .9396, 1.8757, 2.8077 &
+             , 2.8098, 3.728,  1.232,  1.232  &
+             , 1.232,  1.232,  1.6,    1.6 &
+             , 0.13957018, 0.1349766, 0.13957018, 1.0 /)
+
 contains
 
  !turns the random number call from a subroutine into a function

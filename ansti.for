@@ -306,6 +306,36 @@ c     variables about the y0 gate in tranverse, longitudinal directions
       integer, dimension(2, fourier_nv, fourier_ny)
      & :: fourier_civnum !< number of particles in each bin
 
+! variables for momentum conservation inquiry. is front/back momentum
+! conserved / zero for emitted protons? All quantities are per-event.
+      real :: moconz_sumpos !< sum of positive z-momenta
+     &       ,moconz_sumneg !< sum of negative z-momenta
+     &       ,moconz_totmom !< total z momentum
+
+      real :: moconz_numpos   !< number of protons with positive z-momentum
+     &       ,moconz_dnumpos  !< uncertainty for this number
+     &       ,moconz_numneg   !< number of protons with negative z-momentum
+     &       ,moconz_dnumneg  !< uncertainty for this number
+     &       ,moconz_diffnum  !< difference in front/back numbers
+     &       ,moconz_ddiffnum !< uncertainty in difference in front/back numbers
+
+! variables for px/m vs. (longitudinal) rapidity 2d histogram for all particles - BWB 2017-08-15
+      logical,parameter  :: calcHistPxmy = .true.
+      integer            :: fhistpxmy_u  ! file unit
+      real, parameter    :: histPxmy_ymin = -0.5
+      real, parameter    :: histPxmy_ymax = 0.5
+      real, parameter    :: histPxmy_pmin = -0.5
+      real, parameter    :: histPxmy_pmax = 0.5
+      integer, parameter :: histPxmy_ny = 40
+      integer, parameter :: histPxmy_np = 40
+      real               :: histPxmy_dy
+     &                     ,histPxmy_dp
+      integer, dimension(16,histPxmy_ny,histPxmy_np)
+     & :: histPxmy !< 16 is for 16 particle types
+
+      integer :: hist_iy,hist_ip
+
+!============================
 
       logical :: goto50 !< variable which, when tested and is true, means to goto line 50 (skip the rest of this particle processing)
 
@@ -354,6 +384,20 @@ c     F. Rami et al., Phys. Rev. Lett. 84, 1120 (2000).
 !     variable initialization for entropy from fragment yields
       particleYields=0
       particleYieldsCut=0
+
+      moconz_sumpos=0.d0
+      moconz_sumneg=0.d0
+      moconz_totmom=0.d0
+      moconz_numpos=0
+      moconz_numneg=0
+
+      ! initialize histPxmy
+      if(calcHistPxmy) then
+       histPxmy=0
+       histPxmy_dy = (histPxmy_ymax - histPxmy_ymin)/histPxmy_ny
+       histPxmy_dp = (histPxmy_pmax - histPxmy_pmin)/histPxmy_np
+       open(newunit=fhistPxmy_u,file=fname(1)//'-histPxmy.out')
+      endif
 c
       PI=4.*ATAN(1.)
 c
@@ -725,6 +769,24 @@ c
      &   = fourier_civnum(2,iv,iy) + int(bar(idc)-zpa(idc))
        enddo !iv
       endif !iy is in range
+
+! conservation of z-momentum test
+      if (pzi>0.d0) then
+       moconz_sumpos=moconz_sumpos+pzi
+       moconz_numpos=moconz_numpos+1
+      elseif (pzi<0.d0) then
+       moconz_sumneg=moconz_sumneg+pzi
+       moconz_numneg=moconz_numneg+1
+      endif
+
+      ! histPxmy in-loop calc
+      hist_iy=ceiling((yc-histPxmy_ymin)/histPxmy_dy)
+      hist_ip=ceiling((pxi -histPxmy_pmin)/histPxmy_dp)
+      if(     (1<=hist_iy).and.(hist_iy<=histPxmy_ny)
+     &   .and.(1<=hist_ip).and.(hist_ip<=histPxmy_np)) then
+       histPxmy(abs(idc),hist_iy,hist_ip)
+     &  =histPxmy(abs(idc),hist_iy,hist_ip)+1
+      endif
 
 c     BWB end
 
@@ -1336,6 +1398,36 @@ c
      &      , iv=1,fourier_nv)
        enddo !iy
       enddo !iv
+
+! conservation of z-momentum
+      moconz_totmom=(moconz_sumpos+moconz_sumneg)/nqu(1)
+      moconz_dnumpos=sqrt(moconz_numpos)
+      moconz_dnumneg=sqrt(moconz_numneg)
+      moconz_numpos=moconz_numpos/nqu(1)
+      moconz_numneg=moconz_numneg/nqu(1)
+      moconz_dnumpos=moconz_dnumpos/nqu(1)
+      moconz_dnumneg=moconz_dnumneg/nqu(1)
+      moconz_diffnum=moconz_numpos - moconz_numneg
+      moconz_ddiffnum=moconz_dnumpos**2+moconz_dnumneg**2
+      moconz_ddiffnum=sqrt(moconz_ddiffnum)
+
+      write(*,*)'moconz_totmom,numpos,numneg,diffnum,ddiffnum:'
+     & ,moconz_totmom
+     & ,moconz_numpos,moconz_numneg,moconz_diffnum,moconz_ddiffnum
+
+     ! histPxmy after-loop
+      write(fhistPxmy_u,*)'# 2D histogram, px vs. y for emitted'
+     & //' particles'
+      write(fhistPxmy_u,*)'# y_cms   pT/m'
+      do hist_iy=1,histPxmy_ny
+      do hist_ip=1,histPxmy_np
+        write(fhistPxmy_u,*)histPxmy_ymin+histPxmy_dy*(hist_iy-0.5)
+     &                     ,histPxmy_pmin+histPxmy_dp*(hist_ip-0.5)
+     &                     ,(1.0*histPxmy(ii,hist_iy,hist_ip)
+     &                      /nqu/histPxmy_dy/histPxmy_dp,ii=1,16)
+       enddo
+       write(fhistPxmy_u,*)
+      enddo
 
 
 c     BWB end

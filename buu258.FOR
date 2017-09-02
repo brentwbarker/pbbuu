@@ -439,7 +439,13 @@ C
       integer :: inputFileUnit !< file unit for input namelist file
 
       logical isFcha4Set
+
+      real :: totpx, totpy, totpz
+
       isFcha4Set=.false.
+      totpx=0.
+      totpy=0.
+      totpz=0.
 
       call get_command_argument(1,stringBuffer)
       inputFileName = trim(stringBuffer)
@@ -1570,6 +1576,22 @@ C
       PRI=(ISTEP/NPRI)*NPRI.EQ.ISTEP.OR.ISTEP.EQ.NSTEP
 
       if(writeOutParticles) call outParticles
+
+      ! calculate total momentum
+      totpx=0
+      totpy=0
+      totpz=0
+      do ii=1,nq
+       ! if not an existent particle
+       if(abs(id(ii)).lt.1.or.abs(id(ii)).gt.16) cycle
+       totpx=totpx+px(ii)
+       totpy=totpy+py(ii)
+       totpz=totpz+pz(ii)
+      enddo
+       totpx=totpx/nqu
+       totpy=totpy/nqu
+       totpz=totpz/nqu
+      write(*,*) 'totpx,totpy,totpz:',totpx,totpy,totpz
 
       GOTO 350 !end main timestep loop
 C

@@ -1,3 +1,5 @@
+!! pbuuproc - reads '.parts' files that were written by outParticles subroutine.
+!+ Continue reading comments to see how to read from that file.
 program pbuuproc
  use arbstorage
  use global
@@ -5,6 +7,12 @@ program pbuuproc
  implicit none
 
  include 'NQUA1'
+
+! choose which 7-character pbuu basename to process
+ character(len=7) :: filename="bwbW9BK"
+
+! choose which timestep to process
+ integer :: iFile = 50 !< number of file output
 
  integer(kind=INT8), dimension(0:0) :: intArray !< working array for kind=INT8 integer
  integer :: tempInt
@@ -23,7 +31,6 @@ program pbuuproc
 
  real(kind=REAL64), parameter :: pi = 4*atan(1._real64)
  real(kind=REAL64), parameter :: mass = 0.938_REAL64
- integer :: iFile = 50 !< number of file output
 
 
  character(len=4) :: charIFile !< character representation of iFile, padded w zeros
@@ -53,6 +60,7 @@ program pbuuproc
 
  real(kind=REAL64), parameter :: histp_rmax = 2._REAL64 !< radius of central cell to gate on
 
+ ! initialize all vectors
  ids = new_BVector_int()
  ncs = new_BVector_int()
  xx = new_BVector_dble()
@@ -72,7 +80,10 @@ program pbuuproc
   if(charIFile(ii:ii)<=' ') charIFile(ii:ii)='0'
  enddo
 
- open(newunit=infileu, file="bwbW9BK"//charIFile//".parts", status="old", access="stream")
+! Set base name of output file here
+ open(newunit=infileu, file=filename//charIFile//".parts", status="old", access="stream")
+
+!! read in all particles from file
  do !loop through particles in given timestep file
   read(infileu, iostat=stat)intArray
   if(stat==iostat_end) exit
@@ -111,6 +122,13 @@ program pbuuproc
  enddo
 
  close(infileu)
+
+!!!!!!!!!!!!!!!!!!!!!!
+! The values are now stored inside the various vectors referenced above.
+!
+! For example, the x-momentum of the ii-th particle can be referenced by
+! "px%values(ii)"
+!!!!!!!!!!!!!!!!!!!!!!
 
  ! pre-loop calc for 'histp'
  histp_dndpx = 0
